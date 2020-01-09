@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "target": "es2015",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "typeRoots": [ "node_modules/@types" ], 
+        "declaration": true,
+        "outDir": "_out",
+        "forceConsistentCasingInFileNames": true
+    },
+    "files": [
+        "index.ts",
+        "auth.ts"
+    ]
+}
