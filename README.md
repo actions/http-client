@@ -46,12 +46,6 @@ To enable detailed console logging of all HTTP requests and responses, set the N
 export NODE_DEBUG=http
 ```
 
-or
-
-```
-set NODE_DEBUG=http
-```
-
 ## Node support
 
 The http-client is built using the latest LTS version of Node 12. We also support the latest LTS for Node 6, 8 and Node 10.
@@ -59,6 +53,12 @@ The http-client is built using the latest LTS version of Node 12. We also suppor
 ## Contributing
 
 We welcome PRs.  Please create an issue and if applicable, a design before proceeding with code.
+
+once:
+
+```bash
+$ npm install
+```
 
 To build:
 
