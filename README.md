@@ -1,5 +1,9 @@
 
-# Typed HTTP Client with TypeScript Typings
+<p align="center">
+  <img src="res/actions.png">
+</p>
+
+# Actions Http-Client
 
 [![Http Status](https://github.com/actions/http-client/workflows/http-tests/badge.svg)](https://github.com/actions/http-client/actions)
 
