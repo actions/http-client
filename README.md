@@ -13,8 +13,9 @@ A lightweight HTTP client optimized for use with actions, TypeScript with generi
 
   - HTTP client with TypeScript generics and async/await/Promises
   - Typings included so no need to acquire separately (great for intellisense and no versioning drift)
+  - [Proxy support](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/about-self-hosted-runners#using-a-proxy-server-with-self-hosted-runners) just works with actions and the runner
+  - Targets ES2019 (runner runs actions with node 12+).  Only supported on node 12+.
   - Basic, Bearer and PAT Support out of the box.  Extensible handlers for others.
-  - Proxy support, just works with actions and the runner
   - Redirects supported
 
 ## Install
