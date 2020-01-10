@@ -1,6 +1,8 @@
 
 # Typed HTTP Client with TypeScript Typings
 
+[![Http Status](https://github.com/actions/http-client/workflows/http-tests/badge.svg)](https://github.com/actions/http-client/actions)
+
 A lightweight HTTP client optimized for use with actions, TypeScript with generics and async await.
 
 ## Features
