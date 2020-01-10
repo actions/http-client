@@ -1,5 +1,5 @@
 {
-  "name": "http-client",
+  "name": "@actions/http-client",
   "version": "1.0.0",
   "description": "Actions Http Client",
   "main": "index.js",
