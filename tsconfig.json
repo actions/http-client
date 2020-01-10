@@ -8,8 +8,5 @@
         "outDir": "_out",
         "forceConsistentCasingInFileNames": true
     },
-    "files": [
-        "index.ts",
-        "auth.ts"
-    ]
+    "include": ["*.ts"]
 }

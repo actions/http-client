@@ -1,6 +1,5 @@
-import * as httpm from '../_out';
-import * as path from 'path';
-import * as am from '../_out/auth';
+import * as httpm from '../';
+import * as am from '../auth';
 
 describe('auth', () => {
     beforeEach(() => {
