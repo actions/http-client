@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="res/actions.png">
+  <img src="actions.png">
 </p>
 
 # Actions Http-Client

@@ -1,10 +1,10 @@
 {
   "name": "http-client",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "description": "Actions Http Client",
   "main": "index.js",
   "scripts": {
-    "build": "rm -Rf ./_out && tsc && cp package*.json ./_out && cp *.md ./_out && cp LICENSE ./_out",
+    "build": "rm -Rf ./_out && tsc && cp package*.json ./_out && cp *.md ./_out && cp LICENSE ./_out && cp actions.png ./_out",
     "test": "jest"
   },
   "repository": {
