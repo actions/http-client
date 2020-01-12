@@ -1,4 +1,4 @@
-import * as httpm from '../';
+import * as httpm from '../_out';
 
 describe('basics', () => {
     let _http: httpm.HttpClient;

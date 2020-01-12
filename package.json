@@ -4,7 +4,7 @@
   "description": "Actions Http Client",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -Rf ./_out && tsc && cp package*.json ./_out && cp *.md ./_out && cp LICENSE ./_out && cp actions.png ./_out",
     "test": "jest"
   },
   "repository": {
@@ -25,6 +25,7 @@
     "@types/jest": "^24.0.25",
     "@types/node": "^13.1.5",
     "jest": "^24.9.0",
+    "nock": "^11.7.2",
     "ts-jest": "^24.3.0",
     "typescript": "^3.7.4"
   }

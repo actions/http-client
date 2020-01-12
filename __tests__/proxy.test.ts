@@ -1,4 +1,4 @@
-import * as pm from '../proxy';
+import * as pm from '../_out/proxy';
 import * as url from 'url';
 
 describe('proxy', () => {
