@@ -1,14 +1,11 @@
 import * as httpm from '../_out';
 import * as path from 'path';
-import * as am from '../_out/auth';
 import * as fs from 'fs';
-import { connect } from 'http2';
 
 let sampleFilePath: string = path.join(__dirname, 'testoutput.txt');
 
 describe('basics', () => {
     let _http: httpm.HttpClient;
-    let _httpbin: httpm.HttpClient;
 
     beforeEach(() => {
         _http = new httpm.HttpClient('http-client-tests');

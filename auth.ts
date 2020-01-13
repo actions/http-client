@@ -11,7 +11,7 @@ export class BasicCredentialHandler implements ifm.IRequestHandler {
     }
 
     prepareRequest(options:any): void {
-        options.headers['Authorization'] = 'Basic ' + new Buffer(this.username + ':' + this.password).toString('base64');
+        options.headers['Authorization'] = 'Basic ' + Buffer.from(this.username + ':' + this.password).toString('base64');
     }
 
     // This handler cannot handle 401
@@ -57,7 +57,7 @@ export class PersonalAccessTokenCredentialHandler implements ifm.IRequestHandler
     // currently implements pre-authorization
     // TODO: support preAuth = false where it hooks on 401
     prepareRequest(options:any): void {
-        options.headers['Authorization'] = 'Basic ' + new Buffer('PAT:' + this.token).toString('base64');
+        options.headers['Authorization'] = 'Basic ' + Buffer.from('PAT:' + this.token).toString('base64');
     }
 
     // This handler cannot handle 401

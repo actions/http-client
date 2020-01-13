@@ -4,7 +4,6 @@ import https = require("https");
 import ifm = require('./interfaces');
 import pm = require('./proxy');
 
-let fs: any;
 let tunnel: any;
 
 export enum HttpCodes {
@@ -70,7 +69,7 @@ export function isHttps(requestUrl: string) {
 }
 
 export class HttpClient {
-    userAgent: string | null | undefined;
+    userAgent: string | undefined;
     handlers: ifm.IRequestHandler[];
     requestOptions: ifm.IRequestOptions;
 
@@ -276,8 +275,7 @@ export class HttpClient {
      */
     public requestRawWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
         let socket;
-        
-        let isDataString = typeof (data) === 'string';
+
         if (typeof (data) === 'string') {
             info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
         }

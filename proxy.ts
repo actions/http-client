@@ -17,7 +17,7 @@ export function getProxyUrl(reqUrl: url.Url): url.Url {
                     bypass = true;
                     break;
             }
-        }            
+        }
     }
 
     let proxyUrl: url.Url;
@@ -34,7 +34,7 @@ export function getProxyUrl(reqUrl: url.Url): url.Url {
         proxyVar = process.env["http_proxy"] ||
                     process.env["HTTP_PROXY"];
     }
-    
+
     if (proxyVar) {
         proxyUrl = url.parse(proxyVar);
     }

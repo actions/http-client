@@ -1,5 +1,4 @@
 import * as httpm from '../_out';
-import * as path from 'path';
 import * as am from '../_out/auth';
 
 describe('auth', () => {
