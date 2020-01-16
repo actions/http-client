@@ -327,6 +327,16 @@ export class HttpClient {
         }
     }
 
+    /**
+     * Gets an http agent. This function is useful when you need an http agent that handles
+     * routing through a proxy server - depending upon the url and proxy environment variables.
+     * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
+     */
+    public getAgent(serverUrl: string): http.Agent {
+        let parsedUrl = url.parse(serverUrl)
+        return this._getAgent(parsedUrl)
+    }
+
     private _prepareRequest(method: string, requestUrl: url.Url, headers: ifm.IHeaders): ifm.IRequestInfo {
         const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
@@ -372,7 +382,7 @@ export class HttpClient {
         return lowercaseKeys(headers || {});
     }
 
-    private _getAgent(parsedUrl: url.Url) {
+    private _getAgent(parsedUrl: url.Url): http.Agent {
         let agent;
         let proxyUrl: url.Url = pm.getProxyUrl(parsedUrl);
         let useProxy = proxyUrl && proxyUrl.hostname;
