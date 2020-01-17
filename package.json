@@ -27,9 +27,7 @@
     "jest": "^24.9.0",
     "proxy": "^1.0.1",
     "ts-jest": "^24.3.0",
-    "typescript": "^3.7.4"
-  },
-  "dependencies": {
+    "typescript": "^3.7.4",
     "tunnel": "0.0.6"
   }
 }
