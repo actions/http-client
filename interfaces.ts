@@ -46,10 +46,3 @@ export interface IRequestOptions {
     allowRetries?: boolean;
     maxRetries?: number;
 }
-
-export interface IProxySettings {
-  readonly proxyUrl: string
-  readonly bypass: string[]
-
-  getProxyUrl(serverUrl): string
-}
