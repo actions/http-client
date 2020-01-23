@@ -151,7 +151,7 @@ describe('proxy', () => {
         expect(res.message.statusCode).toBe(200);
         let body: string = await res.readBody();
         let obj: any = JSON.parse(body);
-        expect(obj.url).toBe("https://httpbin.org/get");
+        expect(obj.url).toBe("http://httpbin.org/get");
         expect(_proxyConnects).toEqual(['httpbin.org:80'])
     })
 
@@ -163,7 +163,7 @@ describe('proxy', () => {
         expect(res.message.statusCode).toBe(200);
         let body: string = await res.readBody();
         let obj: any = JSON.parse(body);
-        expect(obj.url).toBe("https://httpbin.org/get");
+        expect(obj.url).toBe("http://httpbin.org/get");
         expect(_proxyConnects).toHaveLength(0)
     })
 
