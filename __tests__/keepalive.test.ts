@@ -16,7 +16,7 @@ describe('basics', () => {
         expect(res.message.statusCode).toBe(200);
         let body: string = await res.readBody();      
         let obj:any = JSON.parse(body);
-        expect(obj.url).toBe("https://httpbin.org/get");
+        expect(obj.url).toBe("http://httpbin.org/get");
         done();
     });
 
@@ -41,7 +41,7 @@ describe('basics', () => {
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
         expect(obj.data).toBe(b);
-        expect(obj.url).toBe("https://httpbin.org/post");
+        expect(obj.url).toBe("http://httpbin.org/post");
         done();
     }); 
     
@@ -52,7 +52,7 @@ describe('basics', () => {
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
         expect(obj.data).toBe(b);
-        expect(obj.url).toBe("https://httpbin.org/patch");
+        expect(obj.url).toBe("http://httpbin.org/patch");
         done();
     }); 
     

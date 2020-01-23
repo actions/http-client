@@ -20,7 +20,7 @@ describe('auth', () => {
         let auth: string = obj.headers.Authorization;
         let creds: string = Buffer.from(auth.substring('Basic '.length), 'base64').toString();
         expect(creds).toBe('johndoe:password');
-        expect(obj.url).toBe("https://httpbin.org/get");
+        expect(obj.url).toBe("http://httpbin.org/get");
     });
 
     it('does basic http get request with pat token auth', async() => {
@@ -36,7 +36,7 @@ describe('auth', () => {
         let auth: string = obj.headers.Authorization;
         let creds: string = Buffer.from(auth.substring('Basic '.length), 'base64').toString();
         expect(creds).toBe('PAT:' + token);
-        expect(obj.url).toBe("https://httpbin.org/get");
+        expect(obj.url).toBe("http://httpbin.org/get");
     });
     
     it('does basic http get request with pat token auth', async() => {
@@ -51,6 +51,6 @@ describe('auth', () => {
         let obj:any = JSON.parse(body);
         let auth: string = obj.headers.Authorization;
         expect(auth).toBe('Bearer ' + token);
-        expect(obj.url).toBe("https://httpbin.org/get");
+        expect(obj.url).toBe("http://httpbin.org/get");
     });    
 })
