@@ -71,6 +71,12 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
     }
 }
 
+export interface ITypedResponse<T> {
+    statusCode: number,
+    result: T | null,
+    headers: Object
+}
+
 export function isHttps(requestUrl: string) {
     let parsedUrl: url.Url = url.parse(requestUrl);
     return parsedUrl.protocol === 'https:';
@@ -161,6 +167,33 @@ export class HttpClient {
     public sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request(verb, requestUrl, stream, additionalHeaders);
     }
+
+    /**
+     * Gets a typed object from an endpoint
+     * Be aware that not found returns a null.  Other errors (4xx, 5xx) reject the promise
+     */
+    public async getJson<T>(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ITypedResponse<T>> {
+        let res: ifm.IHttpClientResponse = await this.get(requestUrl, additionalHeaders);
+        return this._processResponse<T>(res, this.requestOptions);
+    }
+    
+    public async postJson<T>(requestUrl: string, obj:T, additionalHeaders?: ifm.IHeaders): Promise<ITypedResponse<T>> {
+        let data: string = JSON.stringify(obj, null, 2);
+        let res: ifm.IHttpClientResponse = await this.post(requestUrl, data, additionalHeaders);
+        return this._processResponse<T>(res, this.requestOptions);
+    }
+
+    public async putJson<T>(requestUrl: string, obj:T, additionalHeaders?: ifm.IHeaders): Promise<ITypedResponse<T>> {
+        let data: string = JSON.stringify(obj, null, 2);
+        let res: ifm.IHttpClientResponse = await this.put(requestUrl, data, additionalHeaders);
+        return this._processResponse<T>(res, this.requestOptions);
+    }    
+
+    public async patchJson<T>(requestUrl: string, obj:T, additionalHeaders?: ifm.IHeaders): Promise<ITypedResponse<T>> {
+        let data: string = JSON.stringify(obj, null, 2);
+        let res: ifm.IHttpClientResponse = await this.patch(requestUrl, data, additionalHeaders);
+        return this._processResponse<T>(res, this.requestOptions);
+    }    
 
     /**
      * Makes a raw http request.
@@ -358,7 +391,6 @@ export class HttpClient {
         info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
         info.options.method = method;
-
         info.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
             info.options.headers["user-agent"] = this.userAgent;
@@ -468,5 +500,82 @@ export class HttpClient {
         retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber);
         const ms: number = ExponentialBackoffTimeSlice*Math.pow(2, retryNumber);
         return new Promise(resolve => setTimeout(()=>resolve(), ms));
-    } 
+    }
+
+    private static dateTimeDeserializer(key: any, value: any): any {
+        if (typeof value === 'string'){
+            let a = new Date(value);
+            if (!isNaN(a.valueOf())) {
+                return a;
+            }
+        }
+
+        return value;
+    }
+
+    private async _processResponse<T>(res: ifm.IHttpClientResponse, options: ifm.IRequestOptions): Promise<ITypedResponse<T>> {
+        return new Promise<ITypedResponse<T>>(async (resolve, reject) => {
+            const statusCode: number = res.message.statusCode;
+
+            const response: ITypedResponse<T> = {
+                statusCode: statusCode,
+                result: null,
+                headers: {}
+            };
+
+            // not found leads to null obj returned
+            if (statusCode == HttpCodes.NotFound) {
+                resolve(response);
+            }
+
+            let obj: any;
+            let contents: string;
+
+            // get the result from the body
+            try {
+                contents = await res.readBody();
+                if (contents && contents.length > 0) {
+                    if (options && options.deserializeDates) {
+                        obj = JSON.parse(contents, HttpClient.dateTimeDeserializer);
+                    } else {
+                        obj = JSON.parse(contents);
+                    }
+
+                    response.result = obj;
+                }
+                
+                response.headers = res.message.headers;
+            }
+            catch (err) {
+                // Invalid resource (contents not json);  leaving result obj null
+            }
+
+            // note that 3xx redirects are handled by the http layer.
+            if (statusCode > 299) {
+                let msg: string;
+
+                // if exception/error in body, attempt to get better error
+                if (obj && obj.message) {
+                    msg = obj.message;
+                } else if (contents && contents.length > 0) {
+                    // it may be the case that the exception is in the body message as string
+                    msg = contents;
+                } else {
+                    msg = "Failed request: (" + statusCode + ")";
+                }
+
+                let err: Error = new Error(msg);
+
+                // attach statusCode and body obj (if available) to the error object
+                err['statusCode'] = statusCode;
+                if (response.result) {
+                    err['result'] = response.result;
+                }
+
+                reject(err);
+            } else {
+                resolve(response);
+            }
+        });
+    }    
 }
