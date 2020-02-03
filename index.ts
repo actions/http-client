@@ -71,12 +71,6 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
     }
 }
 
-export interface ITypedResponse<T> {
-    statusCode: number,
-    result: T | null,
-    headers: Object
-}
-
 export function isHttps(requestUrl: string) {
     let parsedUrl: url.Url = url.parse(requestUrl);
     return parsedUrl.protocol === 'https:';
@@ -172,24 +166,24 @@ export class HttpClient {
      * Gets a typed object from an endpoint
      * Be aware that not found returns a null.  Other errors (4xx, 5xx) reject the promise
      */
-    public async getJson<T>(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ITypedResponse<T>> {
+    public async getJson<T>(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.ITypedResponse<T>> {
         let res: ifm.IHttpClientResponse = await this.get(requestUrl, additionalHeaders);
         return this._processResponse<T>(res, this.requestOptions);
     }
     
-    public async postJson<T>(requestUrl: string, obj:T, additionalHeaders?: ifm.IHeaders): Promise<ITypedResponse<T>> {
+    public async postJson<T>(requestUrl: string, obj: any, additionalHeaders?: ifm.IHeaders): Promise<ifm.ITypedResponse<T>> {
         let data: string = JSON.stringify(obj, null, 2);
         let res: ifm.IHttpClientResponse = await this.post(requestUrl, data, additionalHeaders);
         return this._processResponse<T>(res, this.requestOptions);
     }
 
-    public async putJson<T>(requestUrl: string, obj:T, additionalHeaders?: ifm.IHeaders): Promise<ITypedResponse<T>> {
+    public async putJson<T>(requestUrl: string, obj: any, additionalHeaders?: ifm.IHeaders): Promise<ifm.ITypedResponse<T>> {
         let data: string = JSON.stringify(obj, null, 2);
         let res: ifm.IHttpClientResponse = await this.put(requestUrl, data, additionalHeaders);
         return this._processResponse<T>(res, this.requestOptions);
     }    
 
-    public async patchJson<T>(requestUrl: string, obj:T, additionalHeaders?: ifm.IHeaders): Promise<ITypedResponse<T>> {
+    public async patchJson<T>(requestUrl: string, obj: any, additionalHeaders?: ifm.IHeaders): Promise<ifm.ITypedResponse<T>> {
         let data: string = JSON.stringify(obj, null, 2);
         let res: ifm.IHttpClientResponse = await this.patch(requestUrl, data, additionalHeaders);
         return this._processResponse<T>(res, this.requestOptions);
@@ -513,11 +507,11 @@ export class HttpClient {
         return value;
     }
 
-    private async _processResponse<T>(res: ifm.IHttpClientResponse, options: ifm.IRequestOptions): Promise<ITypedResponse<T>> {
-        return new Promise<ITypedResponse<T>>(async (resolve, reject) => {
+    private async _processResponse<T>(res: ifm.IHttpClientResponse, options: ifm.IRequestOptions): Promise<ifm.ITypedResponse<T>> {
+        return new Promise<ifm.ITypedResponse<T>>(async (resolve, reject) => {
             const statusCode: number = res.message.statusCode;
 
-            const response: ITypedResponse<T> = {
+            const response: ifm.ITypedResponse<T> = {
                 statusCode: statusCode,
                 result: null,
                 headers: {}
