@@ -47,3 +47,9 @@ export interface IRequestOptions {
     allowRetries?: boolean;
     maxRetries?: number;
 }
+
+export interface ITypedResponse<T> {
+    statusCode: number,
+    result: T | null,
+    headers: Object
+}
