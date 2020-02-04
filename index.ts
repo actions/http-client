@@ -35,6 +35,15 @@ export enum HttpCodes {
     GatewayTimeout = 504,
 }
 
+export enum Headers  {
+    Accept = "accept",
+    ContentType = "content-type"
+}
+
+export enum MediaTypes {
+    ApplicationJson = "application/json"
+}
+
 /**
  * Returns the proxy URL, depending upon the supplied url and proxy environment variables.
  * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
@@ -166,25 +175,32 @@ export class HttpClient {
      * Gets a typed object from an endpoint
      * Be aware that not found returns a null.  Other errors (4xx, 5xx) reject the promise
      */
-    public async getJson<T>(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.ITypedResponse<T>> {
+    public async getJson<T>(requestUrl: string, additionalHeaders: ifm.IHeaders = {}): Promise<ifm.ITypedResponse<T>> {
+        additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson)
         let res: ifm.IHttpClientResponse = await this.get(requestUrl, additionalHeaders);
         return this._processResponse<T>(res, this.requestOptions);
     }
     
-    public async postJson<T>(requestUrl: string, obj: any, additionalHeaders?: ifm.IHeaders): Promise<ifm.ITypedResponse<T>> {
+    public async postJson<T>(requestUrl: string, obj: any, additionalHeaders: ifm.IHeaders = {}): Promise<ifm.ITypedResponse<T>> {
         let data: string = JSON.stringify(obj, null, 2);
+        additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson)
+        additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
         let res: ifm.IHttpClientResponse = await this.post(requestUrl, data, additionalHeaders);
         return this._processResponse<T>(res, this.requestOptions);
     }
 
-    public async putJson<T>(requestUrl: string, obj: any, additionalHeaders?: ifm.IHeaders): Promise<ifm.ITypedResponse<T>> {
+    public async putJson<T>(requestUrl: string, obj: any, additionalHeaders: ifm.IHeaders = {}): Promise<ifm.ITypedResponse<T>> {
         let data: string = JSON.stringify(obj, null, 2);
+        additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson)
+        additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
         let res: ifm.IHttpClientResponse = await this.put(requestUrl, data, additionalHeaders);
         return this._processResponse<T>(res, this.requestOptions);
     }    
 
-    public async patchJson<T>(requestUrl: string, obj: any, additionalHeaders?: ifm.IHeaders): Promise<ifm.ITypedResponse<T>> {
+    public async patchJson<T>(requestUrl: string, obj: any, additionalHeaders: ifm.IHeaders = {}): Promise<ifm.ITypedResponse<T>> {
         let data: string = JSON.stringify(obj, null, 2);
+        additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson)
+        additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
         let res: ifm.IHttpClientResponse = await this.patch(requestUrl, data, additionalHeaders);
         return this._processResponse<T>(res, this.requestOptions);
     }    
@@ -414,6 +430,14 @@ export class HttpClient {
         }
 
         return lowercaseKeys(headers || {});
+    }
+
+    private _getExistingOrDefaultHeader(additionalHeaders: ifm.IHeaders, header: string, _default: string) {
+        let clientHeader: string;
+        if(this.requestOptions && this.requestOptions.headers) {
+            clientHeader =  this.requestOptions.headers[header];
+        }
+        return additionalHeaders[header] || clientHeader || _default;
     }
 
     private _getAgent(parsedUrl: url.Url): http.Agent {
