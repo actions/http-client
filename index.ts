@@ -433,9 +433,11 @@ export class HttpClient {
     }
 
     private _getExistingOrDefaultHeader(additionalHeaders: ifm.IHeaders, header: string, _default: string) {
+        const lowercaseKeys = obj => Object.keys(obj).reduce((c, k) => (c[k.toLowerCase()] = obj[k], c), {});
+
         let clientHeader: string;
         if(this.requestOptions && this.requestOptions.headers) {
-            clientHeader =  this.requestOptions.headers[header];
+            clientHeader =  lowercaseKeys(this.requestOptions.headers)[header];
         }
         return additionalHeaders[header] || clientHeader || _default;
     }
