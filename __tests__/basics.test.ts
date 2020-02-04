@@ -9,6 +9,7 @@ interface HttpBinData {
     url: string;
     data: any;
     json: any;
+    headers: any;
     args?: any
 }
 
@@ -206,6 +207,8 @@ describe('basics', () => {
         expect(jsonObj.statusCode).toBe(200);
         expect(jsonObj.result).toBeDefined();
         expect(jsonObj.result.url).toBe('https://httpbin.org/get');
+        expect(jsonObj.result.headers["Accept"]).toBe(httpm.MediaTypes.ApplicationJson);
+        expect(jsonObj.headers[httpm.Headers.ContentType]).toBe(httpm.MediaTypes.ApplicationJson);
     });
     
     it('getting a non existent json object returns null', async() => {
@@ -221,6 +224,9 @@ describe('basics', () => {
         expect(restRes.result).toBeDefined(); 
         expect(restRes.result.url).toBe('https://httpbin.org/post');
         expect(restRes.result.json.name).toBe('foo');
+        expect(restRes.result.headers["Accept"]).toBe(httpm.MediaTypes.ApplicationJson);
+        expect(restRes.result.headers["Content-Type"]).toBe(httpm.MediaTypes.ApplicationJson);
+        expect(restRes.headers[httpm.Headers.ContentType]).toBe(httpm.MediaTypes.ApplicationJson);
     });
 
     it('puts a json object', async() => {
@@ -230,6 +236,10 @@ describe('basics', () => {
         expect(restRes.result).toBeDefined(); 
         expect(restRes.result.url).toBe('https://httpbin.org/put');
         expect(restRes.result.json.name).toBe('foo');
+
+        expect(restRes.result.headers["Accept"]).toBe(httpm.MediaTypes.ApplicationJson);
+        expect(restRes.result.headers["Content-Type"]).toBe(httpm.MediaTypes.ApplicationJson);
+        expect(restRes.headers[httpm.Headers.ContentType]).toBe(httpm.MediaTypes.ApplicationJson);
     });
     
     it('patch a json object', async() => {
@@ -239,5 +249,8 @@ describe('basics', () => {
         expect(restRes.result).toBeDefined(); 
         expect(restRes.result.url).toBe('https://httpbin.org/patch');
         expect(restRes.result.json.name).toBe('foo');
-    });    
-})
+        expect(restRes.result.headers["Accept"]).toBe(httpm.MediaTypes.ApplicationJson);
+        expect(restRes.result.headers["Content-Type"]).toBe(httpm.MediaTypes.ApplicationJson);
+        expect(restRes.headers[httpm.Headers.ContentType]).toBe(httpm.MediaTypes.ApplicationJson);
+    });
+});
