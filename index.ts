@@ -3,6 +3,7 @@ import http = require("http");
 import https = require("https");
 import ifm = require('./interfaces');
 import pm = require('./proxy');
+import utils = require('./util')
 
 let tunnel: any;
 
@@ -68,14 +69,30 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
     public message: http.IncomingMessage;
     readBody(): Promise<string> {
         return new Promise<string>(async (resolve, reject) => {
-            let output = Buffer.alloc(0);
+            let buffer: Buffer = Buffer.alloc(0);
+            const encodingCharset = utils.obtainContentCharset(this);
 
-            this.message.on('data', (chunk: Buffer) => {
-                output = Buffer.concat([output, chunk]);
-            });
+            // Extract Encoding from header: 'content-encoding' and check against the supported BufferEncoding types
+            // Match `gzip`, `gzip, deflate` variations of GZIP encoding
+            const contentEncodingHeader: string = this.message.headers['content-encoding'] || '';
+            const isGzippedEncoded: boolean = new RegExp('(gzip$)|(gzip, *deflate)').test(contentEncodingHeader);
 
-            this.message.on('end', () => {
-                resolve(output.toString());
+            const supportedEncodings = ['ascii', 'utf8', 'utf-8', 'utf16le', 'ucs2', 'ucs-2', 'base64', 'latin1', 'binary', 'hex']
+            const isSupportedEncoding = (x: string): x is BufferEncoding => supportedEncodings.includes(x)
+            const encoding: BufferEncoding = isSupportedEncoding(contentEncodingHeader) ? contentEncodingHeader : 'utf-8'    
+
+            this.message.on('data', function(data: string|Buffer) {
+                const chunk = (typeof data === 'string') ? Buffer.from(data, encoding) : data;
+                buffer = Buffer.concat([buffer, chunk]);
+            }).on('end', async function() {
+                if (isGzippedEncoded) { // Process GZipped Response Body HERE
+                    const gunzippedBody = await utils.decompressGzippedContent(buffer, encodingCharset);
+                    resolve(gunzippedBody);
+                }
+
+                resolve(buffer.toString(encodingCharset));
+            }).on('error', function(err) {
+                reject(err);
             });
         });
     }

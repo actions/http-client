@@ -253,4 +253,13 @@ describe('basics', () => {
         expect(restRes.result.headers["Content-Type"]).toBe(httpm.MediaTypes.ApplicationJson);
         expect(restRes.headers[httpm.Headers.ContentType]).toBe(httpm.MediaTypes.ApplicationJson);
     });
+
+    it('does basic http get request with gzip encoded response', async() => {
+        const httpResponse: httpm.HttpClientResponse = await _http.get('http://httpbin.org/gzip');
+        const body: string = await httpResponse.readBody();
+        const bodyAsJSON:any = JSON.parse(body);
+
+        expect(bodyAsJSON.headers && bodyAsJSON.headers.Host).toBe("httpbin.org")
+        expect(httpResponse.message.statusCode).toBe(200)
+    });
 });
