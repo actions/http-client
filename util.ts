@@ -9,8 +9,8 @@ import {IHttpClientResponse} from './interfaces'
  * @param {string} charset
  * @return {Promise<string>}
  */
-export async function decompressGzippedContent(buffer: Buffer, charset: string): Promise<string> {
-    return new Promise<string>(async (resolve, reject) => {
+export function decompressGzippedContent(buffer: Buffer, charset: string): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
         zlib.gunzip(buffer, function (error, buffer) {
             if (error) {
                 reject(error);
