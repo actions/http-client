@@ -1,6 +1,6 @@
 import ifm = require("./interfaces");
 
-export class BasicCredentialHandler implements ifm.IRequestHandler {
+export class BasicCredentialHandler implements ifm.IRequestHandlerWithoutAuth {
   username: string;
   password: string;
 
@@ -16,20 +16,12 @@ export class BasicCredentialHandler implements ifm.IRequestHandler {
   }
 
   // This handler cannot handle 401
-  canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
+  canHandleAuthentication(): false {
     return false;
-  }
-
-  handleAuthentication(
-    httpClient: ifm.IHttpClient,
-    requestInfo: ifm.IRequestInfo,
-    objs
-  ): Promise<ifm.IHttpClientResponse> {
-    return null;
   }
 }
 
-export class BearerCredentialHandler implements ifm.IRequestHandler {
+export class BearerCredentialHandler implements ifm.IRequestHandlerWithoutAuth {
   token: string;
 
   constructor(token: string) {
@@ -43,21 +35,13 @@ export class BearerCredentialHandler implements ifm.IRequestHandler {
   }
 
   // This handler cannot handle 401
-  canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
+  canHandleAuthentication(response: ifm.IHttpClientResponse): false {
     return false;
-  }
-
-  handleAuthentication(
-    httpClient: ifm.IHttpClient,
-    requestInfo: ifm.IRequestInfo,
-    objs
-  ): Promise<ifm.IHttpClientResponse> {
-    return null;
   }
 }
 
 export class PersonalAccessTokenCredentialHandler
-  implements ifm.IRequestHandler {
+  implements ifm.IRequestHandlerWithoutAuth {
   token: string;
 
   constructor(token: string) {
@@ -72,15 +56,7 @@ export class PersonalAccessTokenCredentialHandler
   }
 
   // This handler cannot handle 401
-  canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
+  canHandleAuthentication(response: ifm.IHttpClientResponse): false {
     return false;
-  }
-
-  handleAuthentication(
-    httpClient: ifm.IHttpClient,
-    requestInfo: ifm.IRequestInfo,
-    objs
-  ): Promise<ifm.IHttpClientResponse> {
-    return null;
   }
 }

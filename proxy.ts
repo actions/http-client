@@ -3,23 +3,19 @@ import * as url from "url";
 export function getProxyUrl(reqUrl: url.Url): url.Url | undefined {
   let usingSsl = reqUrl.protocol === "https:";
 
-  let proxyUrl: url.Url;
   if (checkBypass(reqUrl)) {
-    return proxyUrl;
+    return undefined;
   }
 
-  let proxyVar: string;
-  if (usingSsl) {
-    proxyVar = process.env["https_proxy"] || process.env["HTTPS_PROXY"];
-  } else {
-    proxyVar = process.env["http_proxy"] || process.env["HTTP_PROXY"];
-  }
+  const proxyVar = usingSsl
+    ? process.env["https_proxy"] || process.env["HTTPS_PROXY"]
+    : process.env["http_proxy"] || process.env["HTTP_PROXY"];
 
   if (proxyVar) {
-    proxyUrl = url.parse(proxyVar);
+    return url.parse(proxyVar);
   }
 
-  return proxyUrl;
+  return undefined;
 }
 
 export function checkBypass(reqUrl: url.Url): boolean {
@@ -33,7 +29,7 @@ export function checkBypass(reqUrl: url.Url): boolean {
   }
 
   // Determine the request port
-  let reqPort: number;
+  let reqPort: number | undefined;
   if (reqUrl.port) {
     reqPort = Number(reqUrl.port);
   } else if (reqUrl.protocol === "http:") {

@@ -1,10 +1,18 @@
 import url = require("url");
 import http = require("http");
 import https = require("https");
+import net = require("net");
+import tunnel = require("tunnel");
 import ifm = require("./interfaces");
 import pm = require("./proxy");
 
-let tunnel: any;
+type StrObj = { [x: string]: any };
+
+const lowercaseKeys = (obj: StrObj) =>
+  Object.keys(obj).reduce(
+    (c: StrObj, k) => ((c[k.toLowerCase()] = obj[k]), c),
+    {}
+  );
 
 export enum HttpCodes {
   OK = 200,
@@ -99,17 +107,17 @@ export function isHttps(requestUrl: string) {
 export class HttpClient {
   userAgent: string | undefined;
   handlers: ifm.IRequestHandler[];
-  requestOptions: ifm.IRequestOptions;
+  requestOptions: ifm.IRequestOptions | undefined;
 
   private _ignoreSslError: boolean = false;
-  private _socketTimeout: number;
+  private _socketTimeout: number | undefined;
   private _allowRedirects: boolean = true;
   private _allowRedirectDowngrade: boolean = false;
   private _maxRedirects: number = 50;
   private _allowRetries: boolean = false;
   private _maxRetries: number = 1;
-  private _agent;
-  private _proxyAgent;
+  private _agent: http.Agent | undefined;
+  private _proxyAgent: http.Agent | undefined;
   private _keepAlive: boolean = false;
   private _disposed: boolean = false;
 
@@ -315,8 +323,8 @@ export class HttpClient {
   public async request(
     verb: string,
     requestUrl: string,
-    data: string | NodeJS.ReadableStream,
-    headers: ifm.IHeaders
+    data: string | NodeJS.ReadableStream | null,
+    headers?: ifm.IHeaders
   ): Promise<ifm.IHttpClientResponse> {
     if (this._disposed) {
       throw new Error("Client has already been disposed.");
@@ -342,11 +350,12 @@ export class HttpClient {
         response.message &&
         response.message.statusCode === HttpCodes.Unauthorized
       ) {
-        let authenticationHandler: ifm.IRequestHandler;
+        let authenticationHandler: ifm.IRequestHandlerWithAuth | undefined;
 
         for (let i = 0; i < this.handlers.length; i++) {
-          if (this.handlers[i].canHandleAuthentication(response)) {
-            authenticationHandler = this.handlers[i];
+          const handler = this.handlers[i];
+          if (handler.canHandleAuthentication(response)) {
+            authenticationHandler = handler as ifm.IRequestHandlerWithAuth;
             break;
           }
         }
@@ -362,11 +371,13 @@ export class HttpClient {
 
       let redirectsRemaining: number = this._maxRedirects;
       while (
+        response.message.statusCode &&
         HttpRedirectCodes.indexOf(response.message.statusCode) != -1 &&
         this._allowRedirects &&
         redirectsRemaining > 0
       ) {
-        const redirectUrl: string | null = response.message.headers["location"];
+        const redirectUrl: string | undefined =
+          response.message.headers["location"];
         if (!redirectUrl) {
           // if there's no location to redirect to, we won't
           break;
@@ -392,7 +403,10 @@ export class HttpClient {
         redirectsRemaining--;
       }
 
-      if (HttpResponseRetryCodes.indexOf(response.message.statusCode) == -1) {
+      if (
+        response.message.statusCode &&
+        HttpResponseRetryCodes.indexOf(response.message.statusCode) == -1
+      ) {
         // If not a retry code, return immediately instead of retrying
         return response;
       }
@@ -405,7 +419,7 @@ export class HttpClient {
       }
     }
 
-    return response;
+    throw new Error("should never reach this point");
   }
 
   /**
@@ -426,7 +440,7 @@ export class HttpClient {
    */
   public requestRaw(
     info: ifm.IRequestInfo,
-    data: string | NodeJS.ReadableStream
+    data: string | NodeJS.ReadableStream | null
   ): Promise<ifm.IHttpClientResponse> {
     return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
       let callbackForResult = function (
@@ -452,20 +466,23 @@ export class HttpClient {
    */
   public requestRawWithCallback(
     info: ifm.IRequestInfo,
-    data: string | NodeJS.ReadableStream,
+    data: string | NodeJS.ReadableStream | null,
     onResult: (err: any, res: ifm.IHttpClientResponse) => void
   ): void {
-    let socket;
+    let socket: net.Socket;
 
     if (typeof data === "string") {
+      info.options.headers = info.options.headers || {};
       info.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
     }
 
     let callbackCalled: boolean = false;
-    let handleResult = (err: any, res: HttpClientResponse) => {
+    let handleResult = (err: Error | null, res: HttpClientResponse | null) => {
       if (!callbackCalled) {
         callbackCalled = true;
-        onResult(err, res);
+        if (res) {
+          onResult(err, res);
+        }
       }
     };
 
@@ -523,7 +540,7 @@ export class HttpClient {
   private _prepareRequest(
     method: string,
     requestUrl: url.Url,
-    headers: ifm.IHeaders
+    headers: ifm.IHeaders = {}
   ): ifm.IRequestInfo {
     const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
@@ -557,10 +574,7 @@ export class HttpClient {
     return info;
   }
 
-  private _mergeHeaders(headers: ifm.IHeaders): ifm.IHeaders {
-    const lowercaseKeys = (obj) =>
-      Object.keys(obj).reduce((c, k) => ((c[k.toLowerCase()] = obj[k]), c), {});
-
+  private _mergeHeaders(headers: ifm.IHeaders = {}): ifm.IHeaders {
     if (this.requestOptions && this.requestOptions.headers) {
       return Object.assign(
         {},
@@ -569,7 +583,7 @@ export class HttpClient {
       );
     }
 
-    return lowercaseKeys(headers || {});
+    return lowercaseKeys(headers);
   }
 
   private _getExistingOrDefaultHeader(
@@ -577,32 +591,24 @@ export class HttpClient {
     header: string,
     _default: string
   ) {
-    const lowercaseKeys = (obj) =>
-      Object.keys(obj).reduce((c, k) => ((c[k.toLowerCase()] = obj[k]), c), {});
-
-    let clientHeader: string;
+    let clientHeader: string | undefined;
     if (this.requestOptions && this.requestOptions.headers) {
       clientHeader = lowercaseKeys(this.requestOptions.headers)[header];
     }
     return additionalHeaders[header] || clientHeader || _default;
   }
 
-  private _getAgent(parsedUrl: url.Url): http.Agent {
-    let agent;
-    let proxyUrl: url.Url = pm.getProxyUrl(parsedUrl);
-    let useProxy = proxyUrl && proxyUrl.hostname;
+  private _getAgent(parsedUrl: url.Url): http.Agent | ifm.AgentWithOptions {
+    // let agent;
+    const proxyUrl = pm.getProxyUrl(parsedUrl);
+    // const useProxy = proxyUrl && proxyUrl.hostname;
 
-    if (this._keepAlive && useProxy) {
-      agent = this._proxyAgent;
-    }
-
-    if (this._keepAlive && !useProxy) {
-      agent = this._agent;
-    }
-
-    // if agent is already assigned use that agent.
-    if (!!agent) {
-      return agent;
+    if (this._keepAlive) {
+      const agent = proxyUrl ? this._proxyAgent : this._agent;
+      // if agent is already assigned use that agent.
+      if (!!agent) {
+        return agent;
+      }
     }
 
     const usingSsl = parsedUrl.protocol === "https:";
@@ -612,29 +618,27 @@ export class HttpClient {
         this.requestOptions.maxSockets || http.globalAgent.maxSockets;
     }
 
-    if (useProxy) {
-      // If using proxy, need tunnel
-      if (!tunnel) {
-        tunnel = require("tunnel");
-      }
+    let agent: http.Agent | undefined;
 
+    if (proxyUrl && proxyUrl.auth && proxyUrl.hostname && proxyUrl.port) {
       const agentOptions = {
         maxSockets: maxSockets,
         keepAlive: this._keepAlive,
         proxy: {
           proxyAuth: proxyUrl.auth,
           host: proxyUrl.hostname,
-          port: proxyUrl.port,
+          port: parseInt(proxyUrl.port),
         },
       };
 
-      let tunnelAgent: Function;
       const overHttps = proxyUrl.protocol === "https:";
-      if (usingSsl) {
-        tunnelAgent = overHttps ? tunnel.httpsOverHttps : tunnel.httpsOverHttp;
-      } else {
-        tunnelAgent = overHttps ? tunnel.httpOverHttps : tunnel.httpOverHttp;
-      }
+      const tunnelAgent = usingSsl
+        ? overHttps
+          ? tunnel.httpsOverHttps
+          : tunnel.httpsOverHttp
+        : overHttps
+        ? tunnel.httpOverHttps
+        : tunnel.httpOverHttp;
 
       agent = tunnelAgent(agentOptions);
       this._proxyAgent = agent;
@@ -656,9 +660,11 @@ export class HttpClient {
       // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
       // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
       // we have to cast it to any and change it directly
-      agent.options = Object.assign(agent.options || {}, {
+      const awo = agent as ifm.AgentWithOptions;
+      awo.options = Object.assign(awo.options || {}, {
         rejectUnauthorized: false,
       });
+      return awo;
     }
 
     return agent;
@@ -683,10 +689,14 @@ export class HttpClient {
 
   private async _processResponse<T>(
     res: ifm.IHttpClientResponse,
-    options: ifm.IRequestOptions
+    options: ifm.IRequestOptions = {}
   ): Promise<ifm.ITypedResponse<T>> {
     return new Promise<ifm.ITypedResponse<T>>(async (resolve, reject) => {
-      const statusCode: number = res.message.statusCode;
+      const statusCode = res.message.statusCode;
+
+      if (!statusCode) {
+        return reject(new Error("missing status code"));
+      }
 
       const response: ifm.ITypedResponse<T> = {
         statusCode: statusCode,
@@ -700,7 +710,7 @@ export class HttpClient {
       }
 
       let obj: any;
-      let contents: string;
+      let contents: string | undefined;
 
       // get the result from the body
       try {
@@ -734,13 +744,11 @@ export class HttpClient {
           msg = "Failed request: (" + statusCode + ")";
         }
 
-        let err: Error = new Error(msg);
-
-        // attach statusCode and body obj (if available) to the error object
-        err["statusCode"] = statusCode;
-        if (response.result) {
-          err["result"] = response.result;
-        }
+        const err: ifm.IExtendedError<T> = Object.assign(new Error(msg), {
+          // attach statusCode and body obj (if available) to the error object
+          statusCode: statusCode,
+          result: response.result,
+        });
 
         reject(err);
       } else {

@@ -56,15 +56,24 @@ export interface IHttpClient {
   ): void;
 }
 
-export interface IRequestHandler {
+export interface IRequestHandlerWithAuth {
   prepareRequest(options: http.RequestOptions): void;
-  canHandleAuthentication(response: IHttpClientResponse): boolean;
+  canHandleAuthentication(response: IHttpClientResponse): true;
   handleAuthentication(
     httpClient: IHttpClient,
     requestInfo: IRequestInfo,
-    objs
+    objs: any
   ): Promise<IHttpClientResponse>;
 }
+
+export interface IRequestHandlerWithoutAuth {
+  prepareRequest(options: http.RequestOptions): void;
+  canHandleAuthentication(response: IHttpClientResponse): false;
+}
+
+export type IRequestHandler =
+  | IRequestHandlerWithAuth
+  | IRequestHandlerWithoutAuth;
 
 export interface IHttpClientResponse {
   message: http.IncomingMessage;
@@ -96,4 +105,13 @@ export interface ITypedResponse<T> {
   statusCode: number;
   result: T | null;
   headers: Object;
+}
+
+export interface IExtendedError<T> extends Error {
+  statusCode: number;
+  result: T | null;
+}
+
+export interface AgentWithOptions extends http.Agent {
+  options: { [key: string]: any };
 }
