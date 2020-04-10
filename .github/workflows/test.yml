@@ -43,7 +43,9 @@ jobs:
     - name: Format
       shell: bash
       run: npm run format-check
+      if: matrix.runs-on == 'ubuntu-latest'
 
     - name: audit security
       continue-on-error: true
       run: npm audit --audit-level=moderate
+      if: matrix.runs-on == 'ubuntu-latest'
