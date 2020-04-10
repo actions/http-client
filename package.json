@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "rm -Rf ./_out && tsc && cp package*.json ./_out && cp *.md ./_out && cp LICENSE ./_out && cp actions.png ./_out",
-    "lint": "prettier --check *.{ts,js,json} **/*.yml",
+    "format": "prettier --write **/*.{ts,js,json,yml}",
+    "format-check": "prettier --check **/*.{ts,js,json,yml}",
     "test": "jest"
   },
   "repository": {
