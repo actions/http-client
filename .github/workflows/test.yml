@@ -41,6 +41,7 @@ jobs:
       run: npm test
 
     - name: Format
+      shell: bash
       run: npm run format-check
 
     - name: audit security
