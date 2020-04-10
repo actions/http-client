@@ -40,8 +40,8 @@ jobs:
     - name: npm test
       run: npm test
 
-    - name: Format
-      run: npm run format-check
+    # - name: Format
+    #   run: npm run format-check
 
     - name: audit security
       run: npm audit --audit-level=moderate
