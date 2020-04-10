@@ -6,8 +6,8 @@
   "scripts": {
     "build": "rm -Rf ./_out && tsc && cp package*.json ./_out && cp *.md ./_out && cp LICENSE ./_out && cp actions.png ./_out",
     "test": "jest",
-    "format": "prettier --write packages/**/*.ts",
-    "format-check": "prettier --check packages/**/*.ts",
+    "format": "prettier --write *.ts && prettier --write **/*.ts",
+    "format-check": "prettier --check *.ts && prettier --check **/*.ts",
     "audit-check": "npm audit --audit-level=moderate"
   },
   "repository": {

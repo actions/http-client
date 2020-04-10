@@ -40,8 +40,12 @@ jobs:
     - name: npm test
       run: npm test
 
-    # - name: Format
-    #   run: npm run format-check
+    - name: Format
+      shell: bash
+      run: npm run format-check
+      if: matrix.runs-on == 'ubuntu-latest'
 
     - name: audit security
+      continue-on-error: true
       run: npm audit --audit-level=moderate
+      if: matrix.runs-on == 'ubuntu-latest'
