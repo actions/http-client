@@ -1,5 +1,4 @@
 import http = require('http')
-import url = require('url')
 
 export interface IHeaders {
   [key: string]: any
@@ -73,7 +72,7 @@ export interface IHttpClientResponse {
 
 export interface IRequestInfo {
   options: http.RequestOptions
-  parsedUrl: url.Url
+  parsedUrl: URL
   httpModule: any
 }
 

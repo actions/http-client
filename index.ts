@@ -1,4 +1,3 @@
-import url = require('url')
 import http = require('http')
 import https = require('https')
 import ifm = require('./interfaces')
@@ -50,7 +49,7 @@ export enum MediaTypes {
  * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
  */
 export function getProxyUrl(serverUrl: string): string {
-  let proxyUrl = pm.getProxyUrl(url.parse(serverUrl))
+  let proxyUrl = pm.getProxyUrl(new URL(serverUrl))
   return proxyUrl ? proxyUrl.href : ''
 }
 
@@ -92,7 +91,7 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
 }
 
 export function isHttps(requestUrl: string) {
-  let parsedUrl: url.Url = url.parse(requestUrl)
+  let parsedUrl: URL = new URL(requestUrl)
   return parsedUrl.protocol === 'https:'
 }
 
@@ -322,7 +321,7 @@ export class HttpClient {
       throw new Error('Client has already been disposed.')
     }
 
-    let parsedUrl = url.parse(requestUrl)
+    let parsedUrl = new URL(requestUrl)
     let info: ifm.IRequestInfo = this._prepareRequest(verb, parsedUrl, headers)
 
     // Only perform retries on reads since writes may not be idempotent.
@@ -371,7 +370,7 @@ export class HttpClient {
           // if there's no location to redirect to, we won't
           break
         }
-        let parsedRedirectUrl = url.parse(redirectUrl)
+        let parsedRedirectUrl = new URL(redirectUrl)
         if (
           parsedUrl.protocol == 'https:' &&
           parsedUrl.protocol != parsedRedirectUrl.protocol &&
@@ -516,13 +515,13 @@ export class HttpClient {
    * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
    */
   public getAgent(serverUrl: string): http.Agent {
-    let parsedUrl = url.parse(serverUrl)
+    let parsedUrl = new URL(serverUrl)
     return this._getAgent(parsedUrl)
   }
 
   private _prepareRequest(
     method: string,
-    requestUrl: url.Url,
+    requestUrl: URL,
     headers: ifm.IHeaders
   ): ifm.IRequestInfo {
     const info: ifm.IRequestInfo = <ifm.IRequestInfo>{}
@@ -587,9 +586,9 @@ export class HttpClient {
     return additionalHeaders[header] || clientHeader || _default
   }
 
-  private _getAgent(parsedUrl: url.Url): http.Agent {
+  private _getAgent(parsedUrl: URL): http.Agent {
     let agent
-    let proxyUrl: url.Url = pm.getProxyUrl(parsedUrl)
+    let proxyUrl: URL = pm.getProxyUrl(parsedUrl)
     let useProxy = proxyUrl && proxyUrl.hostname
 
     if (this._keepAlive && useProxy) {
@@ -621,7 +620,7 @@ export class HttpClient {
         maxSockets: maxSockets,
         keepAlive: this._keepAlive,
         proxy: {
-          proxyAuth: proxyUrl.auth,
+          proxyAuth: `${proxyUrl.username}:${proxyUrl.password}`,
           host: proxyUrl.hostname,
           port: proxyUrl.port
         }

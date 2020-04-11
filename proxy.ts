@@ -1,9 +1,7 @@
-import * as url from 'url'
-
-export function getProxyUrl(reqUrl: url.Url): url.Url | undefined {
+export function getProxyUrl(reqUrl: URL): URL | undefined {
   let usingSsl = reqUrl.protocol === 'https:'
 
-  let proxyUrl: url.Url
+  let proxyUrl: URL
   if (checkBypass(reqUrl)) {
     return proxyUrl
   }
@@ -16,13 +14,13 @@ export function getProxyUrl(reqUrl: url.Url): url.Url | undefined {
   }
 
   if (proxyVar) {
-    proxyUrl = url.parse(proxyVar)
+    proxyUrl = new URL(proxyVar)
   }
 
   return proxyUrl
 }
 
-export function checkBypass(reqUrl: url.Url): boolean {
+export function checkBypass(reqUrl: URL): boolean {
   if (!reqUrl.hostname) {
     return false
   }
