@@ -388,10 +388,10 @@ export class HttpClient {
 
         // strip authorization header if redirected to a different hostname
         if (parsedRedirectUrl.hostname !== parsedUrl.hostname) {
-          for(let header in headers){
+          for (let header in headers) {
             // header names are case insensitive
-            if (header.toLowerCase() === "authorization") {
-              delete headers[header] 
+            if (header.toLowerCase() === 'authorization') {
+              delete headers[header]
             }
           }
         }
