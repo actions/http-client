@@ -179,6 +179,52 @@ describe('basics', () => {
     done()
   })
 
+  it('does not pass auth with diff hostname redirects', async done => {
+    let headers = {
+      accept: 'application/json',
+      authorization: 'shhh'
+    }
+    let res: httpm.HttpClientResponse = await _http.get(
+      'https://httpbin.org/redirect-to?url=' +
+        encodeURIComponent('https://www.httpbin.org/get'),
+      headers
+    )
+
+    expect(res.message.statusCode).toBe(200)
+    let body: string = await res.readBody()
+    let obj: any = JSON.parse(body)
+    // httpbin "fixes" the casing
+    expect(obj.headers['Accept']).toBe('application/json')
+    expect(obj.headers['Authorization']).toBeUndefined()
+    expect(obj.headers['authorization']).toBeUndefined()
+    expect(obj.url).toBe('https://www.httpbin.org/get')
+
+    done()
+  })
+
+  it('does not pass Auth with diff hostname redirects', async done => {
+    let headers = {
+      Accept: 'application/json',
+      Authorization: 'shhh'
+    }
+    let res: httpm.HttpClientResponse = await _http.get(
+      'https://httpbin.org/redirect-to?url=' +
+        encodeURIComponent('https://www.httpbin.org/get'),
+      headers
+    )
+
+    expect(res.message.statusCode).toBe(200)
+    let body: string = await res.readBody()
+    let obj: any = JSON.parse(body)
+    // httpbin "fixes" the casing
+    expect(obj.headers['Accept']).toBe('application/json')
+    expect(obj.headers['Authorization']).toBeUndefined()
+    expect(obj.headers['authorization']).toBeUndefined()
+    expect(obj.url).toBe('https://www.httpbin.org/get')
+
+    done()
+  })
+
   it('does basic head request', async done => {
     let res: httpm.HttpClientResponse = await _http.head(
       'http://httpbin.org/get'
