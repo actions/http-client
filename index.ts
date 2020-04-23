@@ -386,6 +386,16 @@ export class HttpClient {
         // which will leak the open socket.
         await response.readBody()
 
+        // strip authorization header if redirected to a different hostname
+        if (parsedRedirectUrl.hostname !== parsedUrl.hostname) {
+          for(let header in headers){
+            // header names are case insensitive
+            if (header.toLowerCase() === "authorization") {
+              delete headers[header] 
+            }
+          }
+        }
+
         // let's make the request with the new redirectUrl
         info = this._prepareRequest(verb, parsedRedirectUrl, headers)
         response = await this.requestRaw(info, data)
