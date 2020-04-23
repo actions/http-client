@@ -194,6 +194,7 @@ describe('basics', () => {
     let body: string = await res.readBody()
     let obj: any = JSON.parse(body)
     // httpbin "fixes" the casing
+    expect(obj.headers['Accept']).toBe('application/json')
     expect(obj.headers['Authorization']).toBeUndefined()
     expect(obj.headers['authorization']).toBeUndefined()
     expect(obj.url).toBe('https://www.httpbin.org/get')
@@ -216,6 +217,7 @@ describe('basics', () => {
     let body: string = await res.readBody()
     let obj: any = JSON.parse(body)
     // httpbin "fixes" the casing
+    expect(obj.headers['Accept']).toBe('application/json')
     expect(obj.headers['Authorization']).toBeUndefined()
     expect(obj.headers['authorization']).toBeUndefined()
     expect(obj.url).toBe('https://www.httpbin.org/get')
