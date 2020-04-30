@@ -1,5 +1,8 @@
 ## Releases
 
+## 1.0.8
+Fixed security issue where a redirect (e.g. 302) to another domain would pass headers.  The fix was to strip the authorization header if the hostname was different.  More [details in PR #27](https://github.com/actions/http-client/pull/27)
+
 ## 1.0.7
 Update NPM dependencies and add 429 to the list of HttpCodes
 
