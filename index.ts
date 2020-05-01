@@ -44,6 +44,17 @@ export enum MediaTypes {
   ApplicationJson = 'application/json'
 }
 
+interface StrObject {
+  [key: string]: any
+}
+
+function lowercaseKeys(obj: StrObject) {
+  return Object.keys(obj).reduce(
+    (c: StrObject, k) => ((c[k.toLowerCase()] = obj[k]), c),
+    {}
+  )
+}
+
 /**
  * Returns the proxy URL, depending upon the supplied url and proxy environment variables.
  * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
@@ -567,9 +578,6 @@ export class HttpClient {
   }
 
   private _mergeHeaders(headers: ifm.IHeaders): ifm.IHeaders {
-    const lowercaseKeys = obj =>
-      Object.keys(obj).reduce((c, k) => ((c[k.toLowerCase()] = obj[k]), c), {})
-
     if (this.requestOptions && this.requestOptions.headers) {
       return Object.assign(
         {},
@@ -586,9 +594,6 @@ export class HttpClient {
     header: string,
     _default: string
   ) {
-    const lowercaseKeys = obj =>
-      Object.keys(obj).reduce((c, k) => ((c[k.toLowerCase()] = obj[k]), c), {})
-
     let clientHeader: string
     if (this.requestOptions && this.requestOptions.headers) {
       clientHeader = lowercaseKeys(this.requestOptions.headers)[header]
