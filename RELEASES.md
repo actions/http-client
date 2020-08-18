@@ -1,5 +1,8 @@
 ## Releases
 
+## 1.0.9
+Throw HttpClientError instead of a generic Error from the \<verb>Json() helper methods when the server responds with a non-successful status code. 
+
 ## 1.0.7
 Update NPM dependencies and add 429 to the list of HttpCodes
 
