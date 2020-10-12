@@ -69,6 +69,18 @@ const RetryableHttpVerbs: string[] = ['OPTIONS', 'GET', 'DELETE', 'HEAD']
 const ExponentialBackoffCeiling = 10
 const ExponentialBackoffTimeSlice = 5
 
+export class HttpClientError extends Error {
+  constructor(message: string, statusCode: number) {
+    super(message)
+    this.name = 'HttpClientError'
+    this.statusCode = statusCode
+    Object.setPrototypeOf(this, HttpClientError.prototype)
+  }
+
+  public statusCode: number
+  public result?: any
+}
+
 export class HttpClientResponse implements ifm.IHttpClientResponse {
   constructor(message: http.IncomingMessage) {
     this.message = message
@@ -742,13 +754,8 @@ export class HttpClient {
           msg = 'Failed request: (' + statusCode + ')'
         }
 
-        let err: Error = new Error(msg)
-
-        // attach statusCode and body obj (if available) to the error object
-        err['statusCode'] = statusCode
-        if (response.result) {
-          err['result'] = response.result
-        }
+        let err = new HttpClientError(msg, statusCode)
+        err.result = response.result
 
         reject(err)
       } else {
