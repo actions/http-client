@@ -2,6 +2,7 @@ import * as http from 'http'
 import * as httpm from '../_out'
 import * as pm from '../_out/proxy'
 import * as proxy from 'proxy'
+import * as tunnelm from 'tunnel'
 
 let _proxyConnects: string[]
 let _proxyServer: http.Server
@@ -194,6 +195,26 @@ describe('proxy', () => {
     let obj: any = JSON.parse(body)
     expect(obj.url).toBe('https://httpbin.org/get')
     expect(_proxyConnects).toHaveLength(0)
+  })
+
+  it('proxyAuth not set in tunnel agent when authentication is not provided', async () => {
+    process.env['https_proxy'] = 'http://127.0.0.1:8080'
+    const httpClient = new httpm.HttpClient()
+    let agent: tunnelm.TunnelingAgent = httpClient.getAgent('https://some-url')
+    console.log(agent)
+    expect(agent.proxyOptions.host).toBe('127.0.0.1')
+    expect(agent.proxyOptions.port).toBe('8080')
+    expect(agent.proxyOptions.proxyAuth).toBe(undefined)
+  })
+
+  it('proxyAuth is set in tunnel agent when authentication is provided', async () => {
+    process.env['https_proxy'] = 'http://user:password@127.0.0.1:8080'
+    const httpClient = new httpm.HttpClient()
+    let agent: tunnelm.TunnelingAgent = httpClient.getAgent('https://some-url')
+    console.log(agent)
+    expect(agent.proxyOptions.host).toBe('127.0.0.1')
+    expect(agent.proxyOptions.port).toBe('8080')
+    expect(agent.proxyOptions.proxyAuth).toBe('user:password')
   })
 })
 
