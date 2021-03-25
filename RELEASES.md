@@ -1,6 +1,6 @@
 ## Releases
 
-## 1.0.10
+## 1.0.11
 
 Contains a bug fix where proxy is defined without a user and password. see [PR here](https://github.com/actions/http-client/pull/42)   
 
