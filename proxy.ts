@@ -1,3 +1,5 @@
+import { CLIENT_RENEG_WINDOW } from "tls"
+
 export function getProxyUrl(reqUrl: URL): URL | undefined {
   let usingSsl = reqUrl.protocol === 'https:'
 
@@ -30,24 +32,25 @@ export function checkBypass(reqUrl: URL): boolean {
   // Format the request hostname and hostname with port
   const upperReqHosts = [upHost]
 
-  // Determine the request port
-  let reqPort = reqUrl.port
+  // Determine the request port and add that to list to check
+  let reqPort = Number(reqUrl.port)
   if (!reqPort) {
     switch (reqUrl.protocol) {
       case 'http:':
-        upperReqHosts.push(`${upHost}:80`)
+        reqPort = 80
         break;
       case 'https:':
-        upperReqHosts.push(`${upHost}:443}`)
+        reqPort = 443
         break;
     }
   }
+  upperReqHosts.push(`${upHost}:${reqPort}`)
 
-  const upHosts = noProxy.split(',').filter(x => x).map(x => x.toUpperCase())
+  const upHosts = noProxy.split(',').map(x => x.trim().toUpperCase()).filter(x => x)
+
   // Compare request host against noproxy
   for (const host of upHosts) {
-    // The closest to a "spec" there is: https://curl.haxx.se/docs/manual.html#environment-variables
-    if (host[0] === '.' && upperReqHosts.some(h => host.endsWith(h))) {
+    if (host[0] === '.' && upperReqHosts.some(h => h.endsWith(host))) {
       return true
     }
     if (upperReqHosts.some(x => x === host)) {
