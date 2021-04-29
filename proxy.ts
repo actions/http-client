@@ -1,3 +1,5 @@
+import { CLIENT_RENEG_WINDOW } from "tls"
+
 export function getProxyUrl(reqUrl: URL): URL | undefined {
   let usingSsl = reqUrl.protocol === 'https:'
 
@@ -21,37 +23,37 @@ export function getProxyUrl(reqUrl: URL): URL | undefined {
 }
 
 export function checkBypass(reqUrl: URL): boolean {
-  if (!reqUrl.hostname) {
+  const noProxy = process.env['no_proxy'] || process.env['NO_PROXY']
+  if (!(reqUrl.hostname && noProxy)) {
     return false
   }
 
-  let noProxy = process.env['no_proxy'] || process.env['NO_PROXY'] || ''
-  if (!noProxy) {
-    return false
-  }
-
-  // Determine the request port
-  let reqPort: number
-  if (reqUrl.port) {
-    reqPort = Number(reqUrl.port)
-  } else if (reqUrl.protocol === 'http:') {
-    reqPort = 80
-  } else if (reqUrl.protocol === 'https:') {
-    reqPort = 443
-  }
-
+  const upHost = reqUrl.hostname.toUpperCase()
   // Format the request hostname and hostname with port
-  let upperReqHosts = [reqUrl.hostname.toUpperCase()]
-  if (typeof reqPort === 'number') {
-    upperReqHosts.push(`${upperReqHosts[0]}:${reqPort}`)
+  const upperReqHosts = [upHost]
+
+  // Determine the request port and add that to list to check
+  let reqPort = Number(reqUrl.port)
+  if (!reqPort) {
+    switch (reqUrl.protocol) {
+      case 'http:':
+        reqPort = 80
+        break;
+      case 'https:':
+        reqPort = 443
+        break;
+    }
   }
+  upperReqHosts.push(`${upHost}:${reqPort}`)
+
+  const upHosts = noProxy.split(',').map(x => x.trim().toUpperCase()).filter(x => x)
 
   // Compare request host against noproxy
-  for (let upperNoProxyItem of noProxy
-    .split(',')
-    .map(x => x.trim().toUpperCase())
-    .filter(x => x)) {
-    if (upperReqHosts.some(x => x === upperNoProxyItem)) {
+  for (const host of upHosts) {
+    if (host[0] === '.' && upperReqHosts.some(h => h.endsWith(host))) {
+      return true
+    }
+    if (upperReqHosts.some(x => x === host)) {
       return true
     }
   }
