@@ -21,37 +21,36 @@ export function getProxyUrl(reqUrl: URL): URL | undefined {
 }
 
 export function checkBypass(reqUrl: URL): boolean {
-  if (!reqUrl.hostname) {
+  const noProxy = process.env['no_proxy'] || process.env['NO_PROXY']
+  if (!(reqUrl.hostname && noProxy)) {
     return false
   }
 
-  let noProxy = process.env['no_proxy'] || process.env['NO_PROXY'] || ''
-  if (!noProxy) {
-    return false
-  }
+  const upHost = reqUrl.hostname.toUpperCase()
+  // Format the request hostname and hostname with port
+  const upperReqHosts = [upHost]
 
   // Determine the request port
-  let reqPort: number
-  if (reqUrl.port) {
-    reqPort = Number(reqUrl.port)
-  } else if (reqUrl.protocol === 'http:') {
-    reqPort = 80
-  } else if (reqUrl.protocol === 'https:') {
-    reqPort = 443
+  let reqPort = reqUrl.port
+  if (!reqPort) {
+    switch (reqUrl.protocol) {
+      case 'http:':
+        upperReqHosts.push(`${upHost}:80`)
+        break;
+      case 'https:':
+        upperReqHosts.push(`${upHost}:443}`)
+        break;
+    }
   }
 
-  // Format the request hostname and hostname with port
-  let upperReqHosts = [reqUrl.hostname.toUpperCase()]
-  if (typeof reqPort === 'number') {
-    upperReqHosts.push(`${upperReqHosts[0]}:${reqPort}`)
-  }
-
+  const upHosts = noProxy.split(',').filter(x => x).map(x => x.toUpperCase())
   // Compare request host against noproxy
-  for (let upperNoProxyItem of noProxy
-    .split(',')
-    .map(x => x.trim().toUpperCase())
-    .filter(x => x)) {
-    if (upperReqHosts.some(x => x === upperNoProxyItem)) {
+  for (const host of upHosts) {
+    // The closest to a "spec" there is: https://curl.haxx.se/docs/manual.html#environment-variables
+    if (host[0] === '.' && upperReqHosts.some(h => host.endsWith(h))) {
+      return true
+    }
+    if (upperReqHosts.some(x => x === host)) {
       return true
     }
   }
