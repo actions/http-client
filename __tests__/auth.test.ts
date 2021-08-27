@@ -27,9 +27,8 @@ describe('auth', () => {
 
   it('does basic http get request with pat token auth', async () => {
     let token: string = 'scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs'
-    let ph: am.PersonalAccessTokenCredentialHandler = new am.PersonalAccessTokenCredentialHandler(
-      token
-    )
+    let ph: am.PersonalAccessTokenCredentialHandler =
+      new am.PersonalAccessTokenCredentialHandler(token)
 
     let http: httpm.HttpClient = new httpm.HttpClient('http-client-tests', [ph])
     let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get')

@@ -1,3 +1,5 @@
+import {URL} from 'url'
+
 export function getProxyUrl(reqUrl: URL): URL | undefined {
   let usingSsl = reqUrl.protocol === 'https:'
 

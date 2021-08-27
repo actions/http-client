@@ -1,4 +1,5 @@
-import http = require('http')
+import * as http from 'http'
+import {URL} from 'url'
 
 export interface IHeaders {
   [key: string]: any

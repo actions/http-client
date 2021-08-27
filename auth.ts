@@ -1,4 +1,4 @@
-import ifm = require('./interfaces')
+import * as ifm from './interfaces'
 
 export class BasicCredentialHandler implements ifm.IRequestHandler {
   username: string
@@ -57,7 +57,8 @@ export class BearerCredentialHandler implements ifm.IRequestHandler {
 }
 
 export class PersonalAccessTokenCredentialHandler
-  implements ifm.IRequestHandler {
+  implements ifm.IRequestHandler
+{
   token: string
 
   constructor(token: string) {

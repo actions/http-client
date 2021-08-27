@@ -1,7 +1,8 @@
-import http = require('http')
-import https = require('https')
-import ifm = require('./interfaces')
-import pm = require('./proxy')
+import * as http from 'http'
+import * as https from 'https'
+import * as ifm from './interfaces'
+import * as pm from './proxy'
+import {URL} from 'url'
 
 let tunnel: any
 
