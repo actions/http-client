@@ -62,6 +62,21 @@ describe('basics', () => {
     done()
   })
 
+  it('does basic http get request with overridden user agent', async done => {
+    let res: httpm.HttpClientResponse = await _http.get(
+      'http://httpbin.org/get',
+      {
+        'user-agent': 'custom-user-agent'
+      }
+    )
+    expect(res.message.statusCode).toBe(200)
+    let body: string = await res.readBody()
+    let obj: any = JSON.parse(body)
+    expect(obj.url).toBe('http://httpbin.org/get')
+    expect(obj.headers['User-Agent']).toBe('custom-user-agent')
+    done()
+  })
+
   it('does basic https get request', async done => {
     let res: httpm.HttpClientResponse = await _http.get(
       'https://httpbin.org/get'
