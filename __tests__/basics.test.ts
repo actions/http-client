@@ -128,7 +128,7 @@ describe('basics', () => {
     })
   })
 
-  it.skip('does basic get request with redirects', async done => {
+  it('does basic get request with redirects', async done => {
     let res: httpm.HttpClientResponse = await _http.get(
       'https://httpbin.org/redirect-to?url=' +
         encodeURIComponent('https://httpbin.org/get')
@@ -140,7 +140,7 @@ describe('basics', () => {
     done()
   })
 
-  it.skip('does basic get request with redirects (303)', async done => {
+  it('does basic get request with redirects (303)', async done => {
     let res: httpm.HttpClientResponse = await _http.get(
       'https://httpbin.org/redirect-to?url=' +
         encodeURIComponent('https://httpbin.org/get') +
@@ -164,7 +164,7 @@ describe('basics', () => {
     done()
   })
 
-  it.skip('does not follow redirects if disabled', async done => {
+  it('does not follow redirects if disabled', async done => {
     let http: httpm.HttpClient = new httpm.HttpClient(
       'typed-test-client-tests',
       null,
@@ -179,7 +179,7 @@ describe('basics', () => {
     done()
   })
 
-  it.skip('does not pass auth with diff hostname redirects', async done => {
+  it('does not pass auth with diff hostname redirects', async done => {
     let headers = {
       accept: 'application/json',
       authorization: 'shhh'
@@ -202,7 +202,7 @@ describe('basics', () => {
     done()
   })
 
-  it.skip('does not pass Auth with diff hostname redirects', async done => {
+  it('does not pass Auth with diff hostname redirects', async done => {
     let headers = {
       Accept: 'application/json',
       Authorization: 'shhh'
