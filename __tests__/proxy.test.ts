@@ -38,109 +38,120 @@ describe('proxy', () => {
     })
   })
 
-  it('getProxyUrl does not return proxyUrl if variables not set', () => {
-    let proxyUrl = pm.getProxyUrl(new URL('https://github.com'))
-    expect(proxyUrl).toBeUndefined()
+  describe('getProxyUrl', () => {
+    it('does not return proxyUrl if variables not set', () => {
+      let proxyUrl = pm.getProxyUrl(new URL('https://github.com'))
+      expect(proxyUrl).toBeUndefined()
+    })
+
+    it('returns proxyUrl if https_proxy set for https url', () => {
+      process.env['https_proxy'] = 'https://myproxysvr'
+      let proxyUrl = pm.getProxyUrl(new URL('https://github.com'))
+      expect(proxyUrl).toBeDefined()
+    })
+
+    it('does not return proxyUrl if http_proxy set for https url', () => {
+      process.env['http_proxy'] = 'https://myproxysvr'
+      let proxyUrl = pm.getProxyUrl(new URL('https://github.com'))
+      expect(proxyUrl).toBeUndefined()
+    })
+
+    it('returns proxyUrl if http_proxy set for http url', () => {
+      process.env['http_proxy'] = 'http://myproxysvr'
+      let proxyUrl = pm.getProxyUrl(new URL('http://github.com'))
+      expect(proxyUrl).toBeDefined()
+    })
+
+    it('does not return proxyUrl if https_proxy set and in no_proxy list', () => {
+      process.env['https_proxy'] = 'https://myproxysvr'
+      process.env['no_proxy'] = 'otherserver,myserver,anotherserver:8080'
+      let proxyUrl = pm.getProxyUrl(new URL('https://myserver'))
+      expect(proxyUrl).toBeUndefined()
+    })
+
+    it('returns proxyUrl if https_proxy set and not in no_proxy list', () => {
+      process.env['https_proxy'] = 'https://myproxysvr'
+      process.env['no_proxy'] = 'otherserver,myserver,anotherserver:8080'
+      let proxyUrl = pm.getProxyUrl(new URL('https://github.com'))
+      expect(proxyUrl).toBeDefined()
+    })
+
+    it('does not return proxyUrl if http_proxy set and in no_proxy list', () => {
+      process.env['http_proxy'] = 'http://myproxysvr'
+      process.env['no_proxy'] = 'otherserver,myserver,anotherserver:8080'
+      let proxyUrl = pm.getProxyUrl(new URL('http://myserver'))
+      expect(proxyUrl).toBeUndefined()
+    })
+
+    it('returns proxyUrl if http_proxy set and not in no_proxy list', () => {
+      process.env['http_proxy'] = 'http://myproxysvr'
+      process.env['no_proxy'] = 'otherserver,myserver,anotherserver:8080'
+      let proxyUrl = pm.getProxyUrl(new URL('http://github.com'))
+      expect(proxyUrl).toBeDefined()
+    })
   })
 
-  it('getProxyUrl returns proxyUrl if https_proxy set for https url', () => {
-    process.env['https_proxy'] = 'https://myproxysvr'
-    let proxyUrl = pm.getProxyUrl(new URL('https://github.com'))
-    expect(proxyUrl).toBeDefined()
-  })
+  describe('checkBypass', () => {
+    it('returns true if host as no_proxy list', () => {
+      process.env['no_proxy'] = 'myserver'
+      let bypass = pm.checkBypass(new URL('https://myserver'))
+      expect(bypass).toBeTruthy()
+    })
 
-  it('getProxyUrl does not return proxyUrl if http_proxy set for https url', () => {
-    process.env['http_proxy'] = 'https://myproxysvr'
-    let proxyUrl = pm.getProxyUrl(new URL('https://github.com'))
-    expect(proxyUrl).toBeUndefined()
-  })
+    it('returns true if host in no_proxy list', () => {
+      process.env['no_proxy'] = 'otherserver,myserver,anotherserver:8080'
+      let bypass = pm.checkBypass(new URL('https://myserver'))
+      expect(bypass).toBeTruthy()
+    })
 
-  it('getProxyUrl returns proxyUrl if http_proxy set for http url', () => {
-    process.env['http_proxy'] = 'http://myproxysvr'
-    let proxyUrl = pm.getProxyUrl(new URL('http://github.com'))
-    expect(proxyUrl).toBeDefined()
-  })
+    it('returns true if host in no_proxy list with spaces', () => {
+      process.env['no_proxy'] = 'otherserver, myserver ,anotherserver:8080'
+      let bypass = pm.checkBypass(new URL('https://myserver'))
+      expect(bypass).toBeTruthy()
+    })
 
-  it('getProxyUrl does not return proxyUrl if https_proxy set and in no_proxy list', () => {
-    process.env['https_proxy'] = 'https://myproxysvr'
-    process.env['no_proxy'] = 'otherserver,myserver,anotherserver:8080'
-    let proxyUrl = pm.getProxyUrl(new URL('https://myserver'))
-    expect(proxyUrl).toBeUndefined()
-  })
+    it('returns true if host in no_proxy list with port', () => {
+      process.env['no_proxy'] = 'otherserver, myserver:8080 ,anotherserver'
+      let bypass = pm.checkBypass(new URL('https://myserver:8080'))
+      expect(bypass).toBeTruthy()
+    })
 
-  it('getProxyUrl returns proxyUrl if https_proxy set and not in no_proxy list', () => {
-    process.env['https_proxy'] = 'https://myproxysvr'
-    process.env['no_proxy'] = 'otherserver,myserver,anotherserver:8080'
-    let proxyUrl = pm.getProxyUrl(new URL('https://github.com'))
-    expect(proxyUrl).toBeDefined()
-  })
+    it('returns true if host with port in no_proxy list without port', () => {
+      process.env['no_proxy'] = 'otherserver, myserver ,anotherserver'
+      let bypass = pm.checkBypass(new URL('https://myserver:8080'))
+      expect(bypass).toBeTruthy()
+    })
 
-  it('getProxyUrl does not return proxyUrl if http_proxy set and in no_proxy list', () => {
-    process.env['http_proxy'] = 'http://myproxysvr'
-    process.env['no_proxy'] = 'otherserver,myserver,anotherserver:8080'
-    let proxyUrl = pm.getProxyUrl(new URL('http://myserver'))
-    expect(proxyUrl).toBeUndefined()
-  })
+    it('returns true if host in no_proxy list with default https port', () => {
+      process.env['no_proxy'] = 'otherserver, myserver:443 ,anotherserver'
+      let bypass = pm.checkBypass(new URL('https://myserver'))
+      expect(bypass).toBeTruthy()
+    })
 
-  it('getProxyUrl returns proxyUrl if http_proxy set and not in no_proxy list', () => {
-    process.env['http_proxy'] = 'http://myproxysvr'
-    process.env['no_proxy'] = 'otherserver,myserver,anotherserver:8080'
-    let proxyUrl = pm.getProxyUrl(new URL('http://github.com'))
-    expect(proxyUrl).toBeDefined()
-  })
+    it('returns true if host in no_proxy list with default http port', () => {
+      process.env['no_proxy'] = 'otherserver, myserver:80 ,anotherserver'
+      let bypass = pm.checkBypass(new URL('http://myserver'))
+      expect(bypass).toBeTruthy()
+    })
 
-  it('checkBypass returns true if host as no_proxy list', () => {
-    process.env['no_proxy'] = 'myserver'
-    let bypass = pm.checkBypass(new URL('https://myserver'))
-    expect(bypass).toBeTruthy()
-  })
+    it('returns false if host not in no_proxy list', () => {
+      process.env['no_proxy'] = 'otherserver, myserver ,anotherserver:8080'
+      let bypass = pm.checkBypass(new URL('https://github.com'))
+      expect(bypass).toBeFalsy()
+    })
 
-  it('checkBypass returns true if host in no_proxy list', () => {
-    process.env['no_proxy'] = 'otherserver,myserver,anotherserver:8080'
-    let bypass = pm.checkBypass(new URL('https://myserver'))
-    expect(bypass).toBeTruthy()
-  })
-
-  it('checkBypass returns true if host in no_proxy list with spaces', () => {
-    process.env['no_proxy'] = 'otherserver, myserver ,anotherserver:8080'
-    let bypass = pm.checkBypass(new URL('https://myserver'))
-    expect(bypass).toBeTruthy()
-  })
-
-  it('checkBypass returns true if host in no_proxy list with port', () => {
-    process.env['no_proxy'] = 'otherserver, myserver:8080 ,anotherserver'
-    let bypass = pm.checkBypass(new URL('https://myserver:8080'))
-    expect(bypass).toBeTruthy()
-  })
-
-  it('checkBypass returns true if host with port in no_proxy list without port', () => {
-    process.env['no_proxy'] = 'otherserver, myserver ,anotherserver'
-    let bypass = pm.checkBypass(new URL('https://myserver:8080'))
-    expect(bypass).toBeTruthy()
-  })
-
-  it('checkBypass returns true if host in no_proxy list with default https port', () => {
-    process.env['no_proxy'] = 'otherserver, myserver:443 ,anotherserver'
-    let bypass = pm.checkBypass(new URL('https://myserver'))
-    expect(bypass).toBeTruthy()
-  })
-
-  it('checkBypass returns true if host in no_proxy list with default http port', () => {
-    process.env['no_proxy'] = 'otherserver, myserver:80 ,anotherserver'
-    let bypass = pm.checkBypass(new URL('http://myserver'))
-    expect(bypass).toBeTruthy()
-  })
-
-  it('checkBypass returns false if host not in no_proxy list', () => {
-    process.env['no_proxy'] = 'otherserver, myserver ,anotherserver:8080'
-    let bypass = pm.checkBypass(new URL('https://github.com'))
-    expect(bypass).toBeFalsy()
-  })
-
-  it('checkBypass returns false if empty no_proxy', () => {
-    process.env['no_proxy'] = ''
-    let bypass = pm.checkBypass(new URL('https://github.com'))
-    expect(bypass).toBeFalsy()
+    it.only('allows dot prefixes which match any subdomain', () => {
+      process.env['no_proxy'] = '.github.com'
+      let bypass = pm.checkBypass(new URL('https://api.github.com'))
+      expect(bypass).toBeTruthy()
+      bypass = pm.checkBypass(new URL('https://apigithub.com'))
+      expect(bypass).toBeFalsy()
+    })
+    it('returns false if empty no_proxy', () => {
+      process.env['no_proxy'] = ''
+      let bypass = pm.checkBypass(new URL('https://github.com'))
+      expect(bypass).toBeFalsy()
+    })
   })
 
   it('HttpClient does basic http get request through proxy', async () => {
@@ -201,7 +212,6 @@ describe('proxy', () => {
     process.env['https_proxy'] = 'http://127.0.0.1:8080'
     const httpClient = new httpm.HttpClient()
     let agent: tunnelm.TunnelingAgent = httpClient.getAgent('https://some-url')
-    console.log(agent)
     expect(agent.proxyOptions.host).toBe('127.0.0.1')
     expect(agent.proxyOptions.port).toBe('8080')
     expect(agent.proxyOptions.proxyAuth).toBe(undefined)
@@ -211,7 +221,6 @@ describe('proxy', () => {
     process.env['https_proxy'] = 'http://user:password@127.0.0.1:8080'
     const httpClient = new httpm.HttpClient()
     let agent: tunnelm.TunnelingAgent = httpClient.getAgent('https://some-url')
-    console.log(agent)
     expect(agent.proxyOptions.host).toBe('127.0.0.1')
     expect(agent.proxyOptions.port).toBe('8080')
     expect(agent.proxyOptions.proxyAuth).toBe('user:password')
