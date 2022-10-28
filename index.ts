@@ -562,7 +562,7 @@ export class HttpClient {
       (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '')
     info.options.method = method
     info.options.headers = this._mergeHeaders(headers)
-    if (this.userAgent != null) {
+    if (this.userAgent != null && !('user-agent' in info.options.headers)) {
       info.options.headers['user-agent'] = this.userAgent
     }
 
